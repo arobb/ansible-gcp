@@ -1,0 +1,8 @@
+---
+- name: 'Copy profile scripts'
+  copy:
+    src: "{{ item }}"
+    dest: /etc/profile.d
+    mode: 0755
+  with_items:
+    - aliases.sh

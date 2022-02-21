@@ -1,0 +1,8 @@
+[all:children]
+
+[unifi]
+unifi.andyrobb.com
+
+[all:vars]
+ansible_user=andy_andyrobb_com
+deploy_target=andy_andyrobb_com

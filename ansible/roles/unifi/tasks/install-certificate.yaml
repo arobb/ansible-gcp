@@ -1,0 +1,86 @@
+---
+- name: Install Python encryption
+  pip:
+    name: cryptography
+    state: latest
+  become: yes
+
+- name: Make /opt/certs
+  file:
+    path: /opt/certs
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=x,o=x
+
+# sudo openssl pkcs12 -export
+# -inkey /etc/letsencrypt/live/mysubdomain.mydomain.com/privkey.pem
+# -in /etc/letsencrypt/live/mysubdomain.mydomain.com/fullchain.pem
+# -out /home/ubuntu/cert.p12
+# -name unifi
+# -password pass:temppass
+- name: Build PKCS12 file
+  community.crypto.openssl_pkcs12:
+    action: export
+    path: /opt/certs/{{ domain_name }}.p12
+    friendly_name: unifi
+    privatekey_path: /etc/letsencrypt/keys/{{ domain_name }}.key
+    certificate_path: /etc/letsencrypt/certs/{{ domain_name }}.crt
+    # other_certificates:
+    #   - /etc/letsencrypt/certs/chain_{{ domain_name }}.crt
+    #   - /etc/letsencrypt/certs/fullchain_{{ domain_name }}
+    # other_certificates_parse_all: yes
+    passphrase: "pass:temppass"
+    state: present
+
+- name: Check if the keystore exists
+  stat:
+    path: /var/lib/unifi/keystore
+  register: keystore_stat
+
+# keytool -delete -alias unifi \
+  # -keystore /var/lib/unifi/keystore \
+  # -deststorepass aircontrolenterprise
+- name: Delete old self-signed certificate
+  community.general.java_cert:
+    cert_alias: unifi
+    keystore_path: /var/lib/unifi/keystore
+    keystore_pass: aircontrolenterprise
+    state: absent
+  become: yes
+  when: keystore_stat.stat.exists
+
+# keytool -importkeystore \
+  # -srckeystore /opt/certs/unifi.andyrobb.com.p12 \
+  # -srcstoretype pkcs12 \
+  # -srcstorepass temppass \
+  # -destkeystore /var/lib/unifi/keystore \
+  # -deststorepass aircontrolenterprise \
+  # -destkeypass aircontrolenterprise \
+  # -alias unifi -trustcacerts
+# - name: Import certificate to Java Keystore
+#   community.general.java_cert:
+#     pkcs12_path: "/opt/certs/{{ domain_name }}.p12"
+#     pkcs12_alias: unifi
+#     pkcs12_password: "pass:temppass"
+#     cert_alias: unifi
+#     keystore_path: /var/lib/unifi/keystore
+#     # keystore_type: "JKS"
+#     keystore_pass: aircontrolenterprise
+#     keystore_create: yes
+#     state: present
+#   notify:
+#     - Restart Unifi
+
+- name: Import certificates to Java Keystore
+  command:
+    cmd: keytool -importkeystore -srckeystore /opt/certs/unifi.andyrobb.com.p12 -srcstoretype pkcs12 -srcstorepass pass:temppass -destkeystore /var/lib/unifi/keystore -deststorepass aircontrolenterprise -destkeypass aircontrolenterprise -alias unifi -trustcacerts
+  notify:
+    - Restart Unifi
+
+- name: Ensure keystore has the right permissions
+  file:
+    path: /var/lib/unifi/keystore
+    owner: unifi
+    group: unifi
+    mode: '0640'

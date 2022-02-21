@@ -1,0 +1,56 @@
+---
+- name: Install Nginx to serve Let's Encrypt challenge files
+  import_tasks: install-nginx.yaml
+
+# - name: Run LetsEncrypt
+#   import_tasks: letsencrypt.yaml
+
+# Install specific Java version (avoid accidental install of newer Java)
+- name: Add Debian Sid Repo for Java 8
+  apt_repository:
+    repo: deb http://deb.debian.org/debian/ sid main
+    state: present
+    update_cache: yes
+
+- name: Recommended dependencies
+  apt:
+    pkg:
+      - ca-certificates
+      - apt-transport-https
+      - openjdk-8-jdk
+    state: latest
+    update_cache: yes
+
+- name: Add MongoDB 3.6 GPG key
+  apt_key:
+    url: https://www.mongodb.org/static/pgp/server-3.6.asc
+    state: present
+
+- name: Add MongoDB 3.6 Repo
+  apt_repository:
+    repo: deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/3.6 main
+    state: present
+    filename: mongodb-org-3.6
+    update_cache: yes
+
+- name: Add the Ubiquiti Apt GPG key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 06E85760C0A52C50
+
+- name: Add the Ubiquiti Apt Repo
+  apt_repository:
+    repo: deb https://www.ui.com/downloads/unifi/debian stable ubiquiti
+    state: present
+    filename: 100-ubnt-unifi
+
+- name: Install Unifi Software
+  apt:
+    name: unifi
+    state: latest
+
+- name: Install Backup Service
+  import_tasks: install-backup-service.yaml
+
+- name: Install Certificate
+  import_tasks: install-certificate.yaml

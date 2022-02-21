@@ -1,0 +1,22 @@
+---
+- name: Start backup timer
+  systemd:
+    name: unifi-backup.timer
+    state: started
+    enabled: yes
+
+- name: Restart Nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Stop Nginx
+  service:
+    name: nginx
+    state: stopped
+    enabled: no
+
+- name: Restart Unifi
+  service:
+    name: unifi
+    state: restarted

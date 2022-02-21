@@ -1,0 +1,16 @@
+---
+- name: Copy service
+  template:
+    src: unifi-backup.service
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+
+- name: Copy service timer
+  template:
+    src: unifi-backup.timer
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+  notify:
+    - Start backup timer

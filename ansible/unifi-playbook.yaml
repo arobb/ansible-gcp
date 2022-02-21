@@ -1,0 +1,8 @@
+---
+- name: Ansible playbook for unifi hosts
+  hosts: unifi
+  roles:
+    - base
+    - unifi
+  remote_user: andy_andyrobb_com
+  become: yes

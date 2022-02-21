@@ -1,0 +1,18 @@
+---
+- name: Install Nginx to serve the challenge files
+  apt:
+    name: nginx
+    state: latest
+
+- name: Apply Nginx template
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/default
+  notify: Restart Nginx
+
+- name: Enable new site
+  file:
+    src: /etc/nginx/sites-available/default
+    dest: /etc/nginx/sites-enabled/default
+    state: link
+  notify: Restart Nginx
