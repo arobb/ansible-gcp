@@ -2,6 +2,9 @@
 Description=Daily backup to {{ bucket }} service
 After=network-online.target
 Wants=network-online.target
+
 [Service]
 Type=oneshot
+User=unifi
+Group=unifi
 ExecStart=/usr/bin/gsutil rsync -r -d /var/lib/unifi/backup "gs://{{ bucket }}"

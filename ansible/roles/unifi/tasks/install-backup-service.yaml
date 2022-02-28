@@ -1,16 +1,25 @@
 ---
-- name: Copy service
+# Don't forget to set the Compute Engine scope to include Storage Read/Write,
+# set the bucket permissions, and clear any cached permissions with sudo rm -r /root/.gsutil
+- name: Install backup service
   template:
     src: unifi-backup.service
     dest: /etc/systemd/system/
-    owner: root
-    group: root
+    owner: unifi
+    group: unifi
+  notify:
+    - Daemon reload backup timer
+
+- name: Enable backup service
+  systemd:
+    name: unifi-backup.service
+    enabled: yes
 
 - name: Copy service timer
   template:
     src: unifi-backup.timer
     dest: /etc/systemd/system/
-    owner: root
-    group: root
+    owner: unifi
+    group: unifi
   notify:
     - Start backup timer

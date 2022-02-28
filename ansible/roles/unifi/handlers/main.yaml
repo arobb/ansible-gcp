@@ -5,6 +5,11 @@
     state: started
     enabled: yes
 
+- name: Daemon reload backup timer
+  systemd:
+    name: unifi-backup.service
+    state: daemon-reload
+
 - name: Restart Nginx
   service:
     name: nginx
