@@ -1,9 +1,12 @@
 ---
+# This role based loosely on https://metis.fi/en/2018/02/unifi-on-gcp/
+
 - name: Install Nginx to serve Let's Encrypt challenge files
   import_tasks: install-nginx.yaml
 
-# - name: Run LetsEncrypt
-#   import_tasks: letsencrypt.yaml
+# Obtain/renew LetsEncrypt certificate
+#- name: Run LetsEncrypt
+#  import_tasks: letsencrypt.yaml
 
 # Install specific Java version (avoid accidental install of newer Java)
 - name: Add Debian Sid Repo for Java 8

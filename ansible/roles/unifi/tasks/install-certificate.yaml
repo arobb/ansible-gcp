@@ -20,18 +20,23 @@
 # -name unifi
 # -password pass:temppass
 - name: Build PKCS12 file
-  community.crypto.openssl_pkcs12:
-    action: export
-    path: /opt/certs/{{ domain_name }}.p12
-    friendly_name: unifi
-    privatekey_path: /etc/letsencrypt/keys/{{ domain_name }}.key
-    certificate_path: /etc/letsencrypt/certs/{{ domain_name }}.crt
-    # other_certificates:
-    #   - /etc/letsencrypt/certs/chain_{{ domain_name }}.crt
-    #   - /etc/letsencrypt/certs/fullchain_{{ domain_name }}
-    # other_certificates_parse_all: yes
-    passphrase: "pass:temppass"
-    state: present
+# Commented after getting "keytool error: java.io.IOException: Integrity check failed:
+# java.security.NoSuchAlgorithmException: Algorithm HmacPBESHA256 not available" starting May 2022
+#  community.crypto.openssl_pkcs12:
+#    action: export
+#    path: /opt/certs/{{ domain_name }}.p12
+#    friendly_name: unifi
+#    privatekey_path: /etc/letsencrypt/keys/{{ domain_name }}.key
+#    certificate_path: /etc/letsencrypt/certs/{{ domain_name }}.crt
+#    # other_certificates:
+#    #   - /etc/letsencrypt/certs/chain_{{ domain_name }}.crt
+#    #   - /etc/letsencrypt/certs/fullchain_{{ domain_name }}
+#    # other_certificates_parse_all: yes
+#    passphrase: "pass:temppass"
+#    state: present
+  command:
+    cmd: openssl pkcs12 -export -out /opt/certs/{{ domain_name }}.p12 -inkey /etc/letsencrypt/keys/{{ domain_name }}.key -in /etc/letsencrypt/certs/{{ domain_name }}.crt -name unifi -passout 'pass:temppass'
+  become: yes
 
 - name: Check if the keystore exists
   stat:
@@ -74,7 +79,8 @@
 
 - name: Import certificates to Java Keystore
   command:
-    cmd: keytool -importkeystore -srckeystore /opt/certs/unifi.andyrobb.com.p12 -srcstoretype pkcs12 -srcstorepass pass:temppass -destkeystore /var/lib/unifi/keystore -deststorepass aircontrolenterprise -destkeypass aircontrolenterprise -alias unifi -trustcacerts
+#    cmd: keytool -importkeystore -srckeystore /opt/certs/{{ domain_name }}.p12 -srcstoretype pkcs12 -srcstorepass pass:temppass -destkeystore /var/lib/unifi/keystore -deststorepass aircontrolenterprise -destkeypass aircontrolenterprise -alias unifi -trustcacerts
+    cmd: keytool -importkeystore -srckeystore /opt/certs/{{ domain_name }}.p12 -srcstoretype pkcs12 -srcstorepass temppass -destkeystore /var/lib/unifi/keystore -deststorepass aircontrolenterprise -destkeypass aircontrolenterprise -alias unifi -trustcacerts
   notify:
     - Restart Unifi
 
