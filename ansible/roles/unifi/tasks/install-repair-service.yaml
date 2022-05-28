@@ -1,0 +1,13 @@
+---
+# Installs Unifi MongoDB repair process, pre-start
+- name: Install repair service
+  template:
+    src: unifi-db-repair.service
+    dest: /etc/systemd/system/
+    owner: unifi
+    group: unifi
+
+- name: Enable repair service
+  systemd:
+    name: unifi-db-repair.service
+    enabled: yes

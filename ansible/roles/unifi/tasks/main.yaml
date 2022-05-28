@@ -49,6 +49,9 @@
     name: unifi
     state: latest
 
+- name: Install DB Repair Service
+  import_tasks: install-repair-service.yaml
+
 - name: Install Backup Service
   import_tasks: install-backup-service.yaml
 

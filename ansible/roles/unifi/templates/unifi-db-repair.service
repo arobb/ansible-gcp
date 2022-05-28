@@ -1,0 +1,12 @@
+[Unit]
+Description=Repair UniFi MongoDB database at boot
+Before=unifi.service mongodb.service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/unifi-db-repair.sh
+
+[Install]
+WantedBy=multi-user.target
