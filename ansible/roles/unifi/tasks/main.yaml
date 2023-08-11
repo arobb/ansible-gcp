@@ -5,8 +5,8 @@
   import_tasks: install-nginx.yaml
 
 # Obtain/renew LetsEncrypt certificate
-#- name: Run LetsEncrypt
-#  import_tasks: letsencrypt.yaml
+- name: Run LetsEncrypt
+  import_tasks: letsencrypt.yaml
 
 # Install specific Java version (avoid accidental install of newer Java)
 - name: Add Debian Sid Repo for Java 8
