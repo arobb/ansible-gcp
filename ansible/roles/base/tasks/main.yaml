@@ -14,10 +14,7 @@
   apt:
     pkg:
       - ca-certificates
-
-- name: Rebuild Root CA Bundle
-  command: c_rehash
-  become: yes
+  notify: Rebuild Root CA Bundle
 
 - name: 'Set netdata configuration'
   copy:
