@@ -20,3 +20,12 @@ ansible-galaxy install -r requirements.yml
 ```
 ansible all -a "cat /proc/cpuinfo" [-u username] [--become] [--ask-become-pass]
 ```
+
+# Unifi
+Install LetsEncrypt certificates (or renew an expired one) and bring the Unifi network application up to latest
+```
+ansible-playbook -i hosts unifi-playbook.yaml
+```
+
+## Version changes
+SSH to the host, then do `sudo apt update` to manually accept changes to updated repositories (should just be unifi)
