@@ -1,0 +1,57 @@
+---
+- name: Install Adafruit-Unifi Apt dependencies
+  apt:
+    pkg:
+      - git
+      - supervisor
+    state: latest
+    update_cache: yes
+
+- name: Download Adafruit-Unifi project
+  git:
+    repo: https://github.com/arobb/adafruit-unifi.git
+    dest: "{{ git_path }}/adafruit-unifi"
+    version: main
+
+- name: Install Adafruit-Unifi Pip dependencies
+  pip:
+    requirements: '{{ git_path }}/adafruit-unifi/requirements.txt'
+    state: present
+
+- name: Create Adafruit-Unifi directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: '0755'
+    owner: '{{ user }}'
+    group: '{{ user }}'
+  with_items:
+    - '{{ config_dir }}'
+    - '{{ logs_dir }}'
+
+- name: Configure Adafruit-Unifi config.ini
+  template:
+    src: adafruit-unifi.ini
+    dest: /etc/adafruit-unifi/config.ini
+    owner: '{{ user }}'
+    group: '{{ user }}'
+  notify:
+    - Restart Supervisor
+
+- name: Configure Adafruit-Unifi switch_ports.yaml
+  template:
+    src: switch_ports.yaml
+    dest: /etc/adafruit-unifi/switch_ports.yaml
+    owner: '{{ user }}'
+    group: '{{ user }}'
+  notify:
+    - Restart Supervisor
+
+- name: Configure Adafruit-Unifi Supervisor
+  template:
+    src: adafruit-unifi-supervisor.conf
+    dest: /etc/supervisor/conf.d/adafruit-unifi.conf
+    owner: root
+    group: root
+  notify:
+    - Reload Supervisor

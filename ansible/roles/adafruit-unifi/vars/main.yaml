@@ -1,0 +1,30 @@
+---
+# Adafruit Unifi Configuration
+config_dir: /etc/adafruit-unifi
+logs_dir: /var/log/adafruit-unifi
+user: unifi
+
+# Where to place the source files
+# git_path: /home/unifi/git
+
+# Secrets configuration
+# adafruit_unifi_vars: "{{ vault_adafruit_unifi_vars }}"
+
+# Vault configuration
+# vault_adafruit_unifi_vars:
+#    unifi:
+#        username: unifi-network-manager-user
+#        password: unifi-network-manager-pw
+#        host: unifi-network-manager-host
+#        site: 8-character-site-key
+#
+#    adafruit_io:
+#        username: username
+#        key: password
+#        feed: feed-name
+
+# Supervisord configuration
+supervisord:
+  stderr_logfile: '{{ logs_dir }}/err.log'
+  stdout_logfile: '{{ logs_dir }}/out.log'
+  user: '{{ user }}'

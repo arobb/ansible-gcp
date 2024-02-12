@@ -1,0 +1,20 @@
+---
+- name: Stop Supervisor Service
+  ansible.builtin.systemd:
+    name: supervisor
+    state: stopped
+  listen: 'Restart Supervisor'
+
+- name: Start Supervisor Service
+  ansible.builtin.systemd:
+    name: supervisor
+    state: started
+  listen:
+    - 'Restart Supervisor'
+    - 'Reload Supervisor'
+
+- name: Reload Supervisor Service
+  ansible.builtin.systemd:
+    name: supervisor
+    state: reloaded
+  listen: 'Reload Supervisor'

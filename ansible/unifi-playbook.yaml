@@ -4,5 +4,6 @@
   roles:
     - base
     - unifi
+    - adafruit-unifi
   remote_user: andy_andyrobb_com
   become: yes

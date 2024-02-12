@@ -1,0 +1,7 @@
+---
+port_list:
+{% for switch_conf in adafruit_unifi_vars.unifi.switch_ports %}
+  - switch: {{ switch_conf.switch }}
+    mac: {{ switch_conf.mac }}
+    idx: {{ switch_conf.idx }}
+{% endfor %}

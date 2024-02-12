@@ -10,3 +10,10 @@ letsencrypt_csrs_dir: /etc/letsencrypt/csrs
 letsencrypt_certs_dir: /etc/letsencrypt/certs
 letsencrypt_account_key: /etc/letsencrypt/account/account.key
 domain_name: unifi.andyrobb.com
+
+# Source downloads
+git_path: /home/andy_andyrobb_com/git
+
+# Secret variables
+## Configuration for remote camera power on/off
+adafruit_unifi_vars: "{{ vault_adafruit_unifi_vars }}"
