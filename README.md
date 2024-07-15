@@ -11,6 +11,13 @@ ansible-playbook -e 'host_key_checking=False' -i hosts --ask-pass new-pi-playboo
 ansible-playbook -i hosts unifi-playbook.yaml
 ```
 
+## Vault
+Does not require password/lookup because that is already configured in ansible.cfg.
+```
+ansible-vault decrypt host_vars/*/vault
+ansible-vault encrypt host_vars/*/vault
+```
+
 ## Install Ansible Galaxy dependencies
 ```
 ansible-galaxy install -r requirements.yml
