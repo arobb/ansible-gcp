@@ -22,7 +22,7 @@
       - apt-transport-https
       - openjdk-8-jdk
     state: latest
-    update_cache: yes
+    update_cache: no
 
 #- name: Add MongoDB 3.6 GPG key
 #  apt_key:
@@ -50,7 +50,7 @@
 - name: Install Unifi Software
   apt:
     name: unifi
-    state: latest
+    state: present
 
 - name: Install DB Repair Service
   import_tasks: install-repair-service.yaml

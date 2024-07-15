@@ -9,7 +9,7 @@
       - netdata
       - python3-pip
       - supervisor
-    update_cache: yes
+    update_cache: no
 
 - name: 'Update root certificates'
   apt:

@@ -5,7 +5,7 @@
       - git
       - supervisor
     state: latest
-    update_cache: yes
+    update_cache: no
 
 - name: Download Adafruit-Unifi project
   git:

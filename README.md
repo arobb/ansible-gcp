@@ -22,7 +22,7 @@ ansible all -a "cat /proc/cpuinfo" [-u username] [--become] [--ask-become-pass]
 ```
 
 # Unifi
-Install LetsEncrypt certificates (or renew an expired one) and bring the Unifi network application up to latest
+Install LetsEncrypt certificates (or renew an expired one)
 ```
 ansible-playbook -i hosts unifi-playbook.yaml
 ```
