@@ -1,6 +1,5 @@
 ---
 - name: 'Update APT package cache'
-  #action: apt update_cache=yes
   apt:
     update_cache: yes
 

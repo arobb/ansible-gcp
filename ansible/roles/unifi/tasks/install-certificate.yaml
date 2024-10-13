@@ -1,4 +1,10 @@
 ---
+# https://www.jeffgeerling.com/blog/2023/how-solve-error-externally-managed-environment-when-installing-pip3
+- name: Ignore PEP 668
+  ansible.builtin.file:
+    path: /usr/lib/python3.11/EXTERNALLY-MANAGED
+    state: absent
+
 - name: Install Python encryption
   pip:
     name: cryptography
@@ -35,7 +41,7 @@
 #    passphrase: "pass:temppass"
 #    state: present
   command:
-    cmd: openssl pkcs12 -export -out /opt/certs/{{ domain_name }}.p12 -inkey /etc/letsencrypt/keys/{{ domain_name }}.key -in /etc/letsencrypt/certs/{{ domain_name }}.crt -name unifi -passout 'pass:temppass'
+    cmd: openssl pkcs12 -export -out /opt/certs/{{ domain_name }}.p12 -inkey {{ letsencrypt_keys_dir }}/{{ domain_name }}.key -in {{ letsencrypt_certs_dir }}/{{ domain_name }}.crt -name unifi -passout 'pass:temppass'
   become: yes
 
 - name: Check if the keystore exists

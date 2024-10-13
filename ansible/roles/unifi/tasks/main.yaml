@@ -20,21 +20,38 @@
     pkg:
       - ca-certificates
       - apt-transport-https
-      - openjdk-8-jdk
+      - openjdk-17-jdk
     state: latest
     update_cache: no
 
-#- name: Add MongoDB 3.6 GPG key
-#  apt_key:
-#    url: https://www.mongodb.org/static/pgp/server-3.6.asc
-#    state: present
-#
-#- name: Add MongoDB 3.6 Repo
-#  apt_repository:
-#    repo: deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/3.6 main
-#    state: present
-#    filename: mongodb-org-3.6
-#    update_cache: yes
+- name: Add MongoDB 7.0 GPG key
+  apt_key:
+    url: https://pgp.mongodb.com/server-7.0.asc
+    state: present
+
+- name: Add MongoDB 7.0 Repo
+  apt_repository:
+    repo: deb http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main
+    state: present
+    filename: mongodb-org-7.0
+    update_cache: yes
+
+- name: Install MongoDB 7.0
+  apt:
+    name: mongodb-org
+    state: present
+
+- name: Freeze Mongo Versions
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - mongodb-org
+    - mongodb-org-database
+    - mongodb-org-server
+    - mongodb-mongosh
+    - mongodb-org-mongos
+    - mongodb-org-tools
 
 - name: Add the Ubiquiti Apt GPG key
   apt_key:
