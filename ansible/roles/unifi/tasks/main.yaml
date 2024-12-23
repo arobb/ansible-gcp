@@ -8,13 +8,6 @@
 - name: Run LetsEncrypt
   import_tasks: letsencrypt.yaml
 
-# Install specific Java version (avoid accidental install of newer Java)
-- name: Add Debian Sid Repo for Java 8
-  apt_repository:
-    repo: deb http://deb.debian.org/debian/ sid main
-    state: present
-    update_cache: yes
-
 - name: Recommended dependencies
   apt:
     pkg:
