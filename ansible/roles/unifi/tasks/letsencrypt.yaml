@@ -14,65 +14,108 @@
   - csrs
   - keys
 
-- name: "Step 2b: Generate a Let's Encrypt account key"
-  shell: "if [ ! -f {{ letsencrypt_account_key }} ]; then openssl genrsa 4096 | sudo tee {{ letsencrypt_account_key }}; fi"
+- name: "Step 3: Check if the certificate will expire in the next 30 days"
+  shell: "openssl x509 -checkend 2592000 -noout -in {{ letsencrypt_certs_dir }}/{{ domain_name }}.crt"
+  ignore_errors: true
+  become: yes
+  register: crt_expire_cmd
 
-- name: "Step 3a: Generate Let's Encrypt private key"
-  shell: "openssl genrsa 4096 | sudo tee /etc/letsencrypt/keys/{{ domain_name }}.key"
+- name: "Get and install LetsEncrypt certificate"
+  when: crt_expire_cmd.rc == 1
+  become: yes
+  become_user: root
+  block:
+    - name: "Check if the account key exists"
+      stat:
+        path: "{{ letsencrypt_account_key }}"
+      register: account_key_stat
 
-- name: "Step 3b: Generate Let's Encrypt CSR"
-  shell: "openssl req -new -sha256 -key /etc/letsencrypt/keys/{{ domain_name }}.key -subj \"/CN={{ domain_name }}\" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf \"\n[SAN]\nsubjectAltName=DNS:{{ domain_name }}\")) | sudo tee /etc/letsencrypt/csrs/{{ domain_name }}.csr"
-  args:
-    executable: /bin/bash
+    - name: "Backup old certificate"
+      copy:
+        src: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt"
+        dest: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt.old"
+        remote_src: true
 
-- name: "Make sure Nginx is running"
-  service:
-    name: nginx
-    state: started
+    - name: "Remove original old certificate"
+      file:
+        path: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt"
+        state: absent
 
-- name: "Step 4: Begin Let's Encrypt challenges"
-  acme_certificate:
-    acme_directory: "{{ acme_directory }}"
-    acme_version: "{{ acme_version }}"
-    account_key_src: "{{ letsencrypt_account_key }}"
-    account_email: "{{ acme_email }}"
-    terms_agreed: 1
-    challenge: "{{ acme_challenge_type }}"
-    csr: "{{ letsencrypt_csrs_dir }}/{{ domain_name }}.csr"
-    dest: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt"
-    fullchain_dest: "{{ letsencrypt_certs_dir }}/fullchain_{{ domain_name }}.crt"
-    remaining_days: 91
-  register: acme_challenge_andyrobb_com
+    - name: "Step 3: Generate a Let's Encrypt account key"
+      shell: "openssl genrsa 4096 | sudo tee {{ letsencrypt_account_key }}"
+      when: not account_key_stat.stat.exists
 
-- name: "Step 5a: Create .well-known/acme-challenge directory"
-  file:
-    path: /var/www/html/.well-known/acme-challenge
-    state: directory
-    owner: root
-    group: root
-    mode: u=rwx,g=rx,o=rx
+    - name: "Step 4: Generate Let's Encrypt private key"
+      shell: "openssl genrsa 4096 | sudo tee /etc/letsencrypt/keys/{{ domain_name }}.key"
 
-- name: "Step 5b: Implement http-01 challenge files"
-  copy:
-    content: "{{ acme_challenge_andyrobb_com['challenge_data'][item]['http-01']['resource_value'] }}"
-    dest: "/var/www/html/{{ acme_challenge_andyrobb_com['challenge_data'][item]['http-01']['resource'] }}"
-    owner: root
-    group: root
-    mode: u=rw,g=r,o=r
-  with_items:
-  - "{{ domain_name }}"
+    - name: "Step 5: Generate Let's Encrypt CSR"
+      shell: "openssl req -new -sha256 -key /etc/letsencrypt/keys/{{ domain_name }}.key -subj \"/CN={{ domain_name }}\" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf \"\n[SAN]\nsubjectAltName=DNS:{{ domain_name }}\")) | sudo tee /etc/letsencrypt/csrs/{{ domain_name }}.csr"
+      args:
+        executable: /bin/bash
 
-- name: "Step 6: Complete Let's Encrypt challenges"
-  acme_certificate:
-    acme_directory: "{{ acme_directory }}"
-    acme_version: "{{ acme_version }}"
-    account_key_src: "{{ letsencrypt_account_key }}"
-    account_email: "{{ acme_email }}"
-    challenge: "{{ acme_challenge_type }}"
-    csr: "{{ letsencrypt_csrs_dir }}/{{ domain_name }}.csr"
-    dest: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt"
-    chain_dest: "{{ letsencrypt_certs_dir }}/chain_{{ domain_name }}.crt"
-    fullchain_dest: "{{ letsencrypt_certs_dir }}/fullchain_{{ domain_name }}"
-    data: "{{ acme_challenge_andyrobb_com }}"
-  notify:
-    - Stop Nginx
+    - name: "Make sure Nginx is running"
+      service:
+        name: nginx
+        state: started
+
+    - name: "Step 6: Begin Let's Encrypt challenges"
+      acme_certificate:
+        acme_directory: "{{ acme_directory }}"
+        acme_version: "{{ acme_version }}"
+        account_key_src: "{{ letsencrypt_account_key }}"
+        account_email: "{{ acme_email }}"
+        terms_agreed: 1
+        challenge: "{{ acme_challenge_type }}"
+        csr: "{{ letsencrypt_csrs_dir }}/{{ domain_name }}.csr"
+        dest: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt"
+        fullchain_dest: "{{ letsencrypt_certs_dir }}/fullchain_{{ domain_name }}.crt"
+        remaining_days: 91
+      register: acme_challenge_andyrobb_com
+
+    - name: "Create .well-known/acme-challenge directory"
+      file:
+        path: /var/www/html/.well-known/acme-challenge
+        state: directory
+        owner: root
+        group: root
+        mode: u=rwx,g=rx,o=rx
+
+    - name: "Step 7: Implement http-01 challenge files"
+      copy:
+        content: "{{ acme_challenge_andyrobb_com['challenge_data'][item]['http-01']['resource_value'] }}"
+        dest: "/var/www/html/{{ acme_challenge_andyrobb_com['challenge_data'][item]['http-01']['resource'] }}"
+        owner: root
+        group: root
+        mode: u=rw,g=r,o=r
+      with_items:
+      - "{{ domain_name }}"
+
+    - name: "Step 8: Complete Let's Encrypt challenges"
+      acme_certificate:
+        acme_directory: "{{ acme_directory }}"
+        acme_version: "{{ acme_version }}"
+        account_key_src: "{{ letsencrypt_account_key }}"
+        account_email: "{{ acme_email }}"
+        challenge: "{{ acme_challenge_type }}"
+        csr: "{{ letsencrypt_csrs_dir }}/{{ domain_name }}.csr"
+        dest: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt"
+        chain_dest: "{{ letsencrypt_certs_dir }}/chain_{{ domain_name }}.crt"
+        fullchain_dest: "{{ letsencrypt_certs_dir }}/fullchain_{{ domain_name }}"
+        data: "{{ acme_challenge_andyrobb_com }}"
+      notify:
+        - Stop Nginx
+
+  rescue:
+    - name: "Restore old certificate"
+      copy:
+        src: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt.old"
+        dest: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt"
+        remote_src: true
+      become: yes
+
+  always:
+    - name: "Clear old certificate backup"
+      file:
+        path: "{{ letsencrypt_certs_dir }}/{{ domain_name }}.crt.old"
+        state: absent
+      become: yes
